@@ -1,0 +1,541 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no, maximum-scale=1">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<title>Himachal Trip Tracker</title>
+<style>
+*{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+html,body{
+  font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Helvetica,Arial,sans-serif;
+  background:#0c1220;color:#e8edf5;min-height:100vh;overflow-x:hidden;font-size:14px;
+}
+input,select,button,textarea{font-family:inherit;outline:none;border:none;background:none;color:inherit}
+.app{max-width:500px;margin:0 auto;padding:0 0 90px}
+.header{padding:20px 16px 0;text-align:center}
+.dates{font-size:9px;letter-spacing:3px;text-transform:uppercase;color:#64748b}
+.title{font-size:22px;font-weight:700;color:#c8d6e5;margin:2px 0}
+.route{font-size:11px;color:#64748b}
+.sync-status{font-size:9px;margin-top:4px;letter-spacing:.5px}
+
+.qstats{display:flex;justify-content:center;gap:16px;margin-top:14px;padding:0 16px;flex-wrap:wrap}
+.qs{text-align:center}
+.qs .ql{font-size:9px;text-transform:uppercase;letter-spacing:1px;color:#64748b}
+.qs .qv{font-family:'Courier New',monospace;font-weight:700;font-size:14px;margin-top:1px}
+
+.pbar-w{max-width:300px;margin:10px auto 0}
+.pbar{height:5px;background:#1c2840;border-radius:9px;overflow:hidden}
+.pbar-f{height:100%;border-radius:9px;transition:width .5s}
+.pbar-l{font-size:9px;color:#64748b;text-align:center;margin-top:3px}
+
+.tabs{display:flex;padding:16px 8px 0;overflow-x:auto;justify-content:center;gap:2px}
+.tabs::-webkit-scrollbar{display:none}
+.tbtn{padding:7px 12px;font-size:11px;font-weight:500;color:#64748b;border-radius:7px;cursor:pointer;white-space:nowrap;border:1px solid transparent}
+.tbtn.on{background:#1c2840;color:#e8edf5;font-weight:700;border-color:#344563}
+.tbtn .bdg{display:inline-block;background:#3b82f6;color:#fff;font-size:8px;padding:1px 5px;border-radius:9px;margin-left:3px;font-weight:700}
+
+.content{padding:12px 14px 0}
+.stitle{font-size:16px;font-weight:700;margin-bottom:12px}
+.card{background:#151d2e;border:1px solid #2a3a54;border-radius:12px;padding:14px;margin-bottom:10px}
+.lbl{font-size:10px;font-weight:600;color:#94a3b8;text-transform:uppercase;letter-spacing:1px;margin:12px 0 5px}
+.lbl:first-child{margin-top:0}
+.inp{width:100%;padding:10px 12px;background:#0c1220;border:1px solid #2a3a54;border-radius:8px;font-size:13px;color:#e8edf5}
+.inp:focus{border-color:#3b82f6}
+.inp-big{font-family:'Courier New',monospace;font-size:18px;font-weight:700}
+.row2{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+
+.opts{display:flex;gap:5px;flex-wrap:wrap}
+.opt{padding:6px 12px;font-size:11px;border:1px solid #2a3a54;border-radius:18px;cursor:pointer;color:#64748b;transition:all .15s;user-select:none}
+
+.cbox-grid{display:grid;grid-template-columns:1fr 1fr 1fr;gap:6px}
+.cbox-item{display:flex;align-items:center;gap:7px;padding:8px 10px;background:#0c1220;border:1px solid #2a3a54;border-radius:8px;cursor:pointer;user-select:none;transition:all .15s}
+.cbox-item.on{border-color:#8b5cf688;background:#8b5cf611}
+.cbox-item input[type=checkbox]{width:15px;height:15px;accent-color:#8b5cf6;cursor:pointer;margin:0;flex-shrink:0}
+.cbox-item span{font-size:12px;font-weight:500}
+.cbox-item.on span{color:#c4b5fd;font-weight:600}
+.toggle-all{font-size:10px;color:#64748b;cursor:pointer;text-decoration:underline;padding:4px 0;background:none;border:none}
+
+.split-preview{margin-top:10px;padding:8px 12px;background:#0c1220;border-radius:8px;font-size:12px;color:#94a3b8}
+.split-preview b{color:#e8edf5;font-family:'Courier New',monospace;font-weight:700}
+
+.btn-main{margin-top:14px;width:100%;padding:12px;background:linear-gradient(135deg,#3b82f6,#8b5cf6);color:#fff;border-radius:10px;font-size:14px;font-weight:700;cursor:pointer;border:none}
+.btn-main:active{opacity:.9}
+.btn-cancel{margin-top:8px;width:100%;padding:10px;background:transparent;color:#64748b;border:1px solid #2a3a54;border-radius:10px;font-size:12px;cursor:pointer}
+.btn-teal{background:linear-gradient(135deg,#14b8a6,#0d9488)}
+
+.exp-top{display:flex;justify-content:space-between;align-items:flex-start;gap:8px}
+.exp-left{flex:1;min-width:0}
+.exp-title{display:flex;align-items:center;gap:6px}
+.exp-title .icon{font-size:14px}
+.exp-title .name{font-weight:600;font-size:13px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.exp-meta{font-size:10px;color:#64748b;margin-top:3px;line-height:1.5}
+.exp-meta b{color:#94a3b8;font-weight:600}
+.exp-right{text-align:right;flex-shrink:0}
+.exp-amt{font-family:'Courier New',monospace;font-weight:700;font-size:15px}
+.exp-actions{display:flex;gap:5px;margin-top:5px;justify-content:flex-end}
+.mbtn{font-size:9px;padding:2px 7px;border-radius:4px;border:1px solid #2a3a54;cursor:pointer;color:#94a3b8}
+.mbtn.dng{border-color:#7f1d1d;color:#ef4444}
+
+.bcat-head{display:flex;justify-content:space-between;align-items:center;margin-bottom:8px}
+.bcat-head .left{display:flex;align-items:center;gap:7px}
+.bcat-head .cname{font-weight:700;font-size:14px}
+.bcat-nums{font-family:'Courier New',monospace;font-size:12px;text-align:right}
+.bline{display:flex;justify-content:space-between;padding:4px 0;border-bottom:1px solid #0c1220;font-size:11px}
+.bline:last-child{border:none}
+.bline .bd{color:#94a3b8;flex:1;padding-right:8px}
+.bline .ba{font-family:'Courier New',monospace;color:#64748b;white-space:nowrap}
+
+.sgrid{display:grid;grid-template-columns:1fr 1fr;gap:7px}
+.sbox{background:#0c1220;border-radius:8px;padding:10px 11px}
+.sbox .sl{font-size:10px;color:#64748b}
+.sbox .sv{font-family:'Courier New',monospace;font-weight:700;font-size:13px;margin-top:2px}
+
+.crow{display:flex;align-items:center;gap:10px;padding:8px 0;border-bottom:1px solid #1c2840}
+.crow .ci{font-size:16px;width:24px}
+.crow .cn{font-size:13px;font-weight:600}
+.crow .cs{font-size:10px;color:#64748b}
+.crow .cr{text-align:right;flex-shrink:0}
+.crow .ca{font-family:'Courier New',monospace;font-size:13px;font-weight:600}
+.crow .cv{font-size:10px;font-weight:600}
+
+.pblock{margin-bottom:10px;padding:10px;background:#0c1220;border-radius:8px}
+.pblock .ph{display:flex;justify-content:space-between;margin-bottom:5px}
+.pblock .pn{font-weight:700;font-size:13px}
+.pblock .pt{font-family:'Courier New',monospace;font-weight:700;font-size:12px}
+.pblock .pc{display:flex;gap:4px;flex-wrap:wrap}
+.pill{font-size:9px;padding:2px 7px;border-radius:4px;font-family:'Courier New',monospace}
+
+.qsrow{display:flex;justify-content:space-between;padding:5px 0;border-bottom:1px solid #1c2840;font-size:12px}
+.qsrow .qsl{color:#94a3b8}
+.qsrow .qsv{color:#e8edf5;font-weight:600;text-align:right;max-width:55%}
+
+.srow{display:flex;align-items:center;justify-content:space-between;padding:8px 0;border-bottom:1px solid #1c2840}
+.srow .sn{font-weight:600;font-size:13px}
+.srow .ss{font-size:10px;color:#64748b}
+.srow .snet{font-family:'Courier New',monospace;font-weight:700;font-size:14px}
+.tcard{display:flex;align-items:center;gap:10px;padding:12px;background:linear-gradient(135deg,#1a1540,#151d2e);border-radius:10px;margin-bottom:8px}
+.tcard .tf{font-weight:700;font-size:13px;color:#ef4444;min-width:62px}
+.tcard .tm{flex:1;text-align:center}
+.tcard .tp{font-size:9px;color:#64748b}
+.tcard .ta{font-family:'Courier New',monospace;font-weight:700;font-size:16px}
+.tcard .tt{font-weight:700;font-size:13px;color:#22c55e;min-width:62px;text-align:right}
+
+.payrow{display:flex;justify-content:space-between;align-items:flex-start;padding:8px 0;border-bottom:1px solid #1c2840}
+.payrow .pi{font-size:13px}
+.payrow .pfr{color:#ef4444;font-weight:600}
+.payrow .pto{color:#22c55e;font-weight:600}
+.payrow .pm{font-size:10px;color:#64748b;margin-top:2px}
+.payrow .pr{display:flex;align-items:center;gap:8px}
+.payrow .pa{font-family:'Courier New',monospace;font-weight:700;font-size:14px}
+
+.toast{position:fixed;top:16px;left:50%;transform:translateX(-50%);background:#22c55e;color:#000;padding:9px 22px;border-radius:99px;font-weight:600;font-size:12px;z-index:999;box-shadow:0 8px 32px rgba(34,197,94,.4)}
+.empty{text-align:center;color:#64748b;padding:10px 0;font-size:13px}
+.resetbtn{font-size:11px;color:#ef4444;background:none;border:1px solid #7f1d1d;padding:5px 14px;border-radius:6px;cursor:pointer;margin-top:14px}
+
+.setup-card{background:#1a1540;border:1px solid #8b5cf644;border-radius:12px;padding:16px;margin-bottom:10px}
+.setup-card h3{font-size:14px;margin-bottom:8px}
+.setup-card p{font-size:12px;color:#94a3b8;line-height:1.6;margin-bottom:8px}
+.setup-card code{font-family:'Courier New',monospace;font-size:11px;background:#0c1220;padding:2px 6px;border-radius:4px;color:#f59e0b}
+.setup-card ol{font-size:12px;color:#94a3b8;line-height:2;padding-left:20px}
+.setup-card a{color:#3b82f6}
+</style>
+</head>
+<body>
+<div class="app" id="app"></div>
+
+<!-- Firebase SDK -->
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
+
+<script>
+// ============================================================
+// FIREBASE CONFIG — Replace with your own project config
+// ============================================================
+var FIREBASE_CONFIG = {
+  apiKey: "AIzaSyA18rDotrDdXsVU7by_GhCNaQklfXJTsBI",
+  authDomain: "himachal-expense.firebaseapp.com",
+  databaseURL: "https://himachal-expense-default-rtdb.firebaseio.com",
+  projectId: "himachal-expense",
+  storageBucket: "himachal-expense.firebasestorage.app",
+  messagingSenderId: "622010305882",
+  appId: "1:622010305882:web:18ca091fbff95a2b2e7763"
+};
+
+var fbReady = false;
+var db = null;
+var syncStatus = "offline";
+
+function initFirebase() {
+  if (!FIREBASE_CONFIG.apiKey) return;
+  try {
+    firebase.initializeApp(FIREBASE_CONFIG);
+    db = firebase.database();
+    fbReady = true;
+    syncStatus = "connecting...";
+    R();
+    // Listen for expenses
+    db.ref("expenses").on("value", function(snap) {
+      var data = snap.val();
+      exps = data ? Object.keys(data).map(function(k) { return data[k]; }) : [];
+      syncStatus = "synced \u2713";
+      R();
+    });
+    // Listen for payments
+    db.ref("payments").on("value", function(snap) {
+      var data = snap.val();
+      pays = data ? Object.keys(data).map(function(k) { return data[k]; }) : [];
+      R();
+    });
+  } catch(e) {
+    syncStatus = "error";
+    R();
+  }
+}
+
+function fbSaveExp() {
+  if (!fbReady) { sv(); return; }
+  var obj = {};
+  exps.forEach(function(e) { obj[e.id] = e; });
+  db.ref("expenses").set(obj);
+}
+function fbSavePay() {
+  if (!fbReady) { svp(); return; }
+  var obj = {};
+  pays.forEach(function(p) { obj[p.id] = p; });
+  db.ref("payments").set(obj);
+}
+
+// ============================================================
+// CORE DATA
+// ============================================================
+var P=["Suyog","Tanvi","Aditya","Ayushi","Tushar","SharaChu"];
+var CATS=["Transport","Stays","Food","Activities","Misc"];
+var IC={Transport:"\u2708\uFE0F",Stays:"\uD83C\uDFE0",Food:"\uD83C\uDF7D\uFE0F",Activities:"\uD83C\uDFD4\uFE0F",Misc:"\uD83D\uDCE6"};
+var CC={Transport:"#3b82f6",Stays:"#8b5cf6",Food:"#f59e0b",Activities:"#10b981",Misc:"#6b7280"};
+var TABS=["Add","Expenses","Budget","Reports","Settle"];
+if(!FIREBASE_CONFIG.apiKey) TABS.push("Setup");
+
+var BUD=[
+  {c:"Transport",d:"Mumbai to Delhi flights (6 pax)",b:55000},
+  {c:"Transport",d:"Innova Crysta all-inclusive (9 days)",b:60000},
+  {c:"Transport",d:"Toll charges",b:1000},
+  {c:"Transport",d:"Chandigarh to Mumbai flights (6 pax)",b:80000},
+  {c:"Stays",d:"Narkanda - 1 night",b:6000},
+  {c:"Stays",d:"Sangla (Banjara/similar) - 3 nights",b:24000},
+  {c:"Stays",d:"Kalpa (Kinner Kailash/similar) - 3 nights",b:21000},
+  {c:"Stays",d:"Narkanda/Theog - 1 night (return)",b:6000},
+  {c:"Food",d:"Meals - Narkanda (1 day)",b:3000},
+  {c:"Food",d:"Meals - Sangla (3 days)",b:9000},
+  {c:"Food",d:"Meals - Kalpa (3 days)",b:9000},
+  {c:"Food",d:"Meals - Narkanda return (1 day)",b:2000},
+  {c:"Food",d:"Meals - Travel day",b:2000},
+  {c:"Food",d:"Snacks / chai / road stops",b:3000},
+  {c:"Activities",d:"Chitkul excursion",b:1000},
+  {c:"Activities",d:"Roghi village walk",b:500},
+  {c:"Activities",d:"Moorang / Purbani drive",b:1000},
+  {c:"Activities",d:"Bhimakali Temple visit",b:500},
+  {c:"Activities",d:"Local shopping (shawls/dry fruits)",b:6000},
+  {c:"Misc",d:"Cash buffer / emergency",b:5000},
+  {c:"Misc",d:"Tips (hotels/restaurants)",b:3000},
+  {c:"Misc",d:"Medicine / first aid kit",b:1500},
+  {c:"Misc",d:"Portable charger / batteries",b:1000}
+];
+
+var EK="ht-exp-v3",PK="ht-pay-v3";
+var exps=[],pays=[];
+var tab=0,editId=null,filterCat="All",toastT=null,toastM="",showPF=false;
+var F={desc:"",cat:"Food",amt:"",paid:"Suyog",split:{},date:tdy()};
+P.forEach(function(p){F.split[p]=true});
+var PF={from:"Tanvi",to:"Suyog",amt:"",date:tdy(),mode:"UPI",note:""};
+
+function tdy(){return new Date().toISOString().slice(0,10)}
+function ld(){try{var d=localStorage.getItem(EK);if(d)exps=JSON.parse(d)}catch(e){}try{var p=localStorage.getItem(PK);if(p)pays=JSON.parse(p)}catch(e){}}
+function sv(){try{localStorage.setItem(EK,JSON.stringify(exps))}catch(e){}}
+function svp(){try{localStorage.setItem(PK,JSON.stringify(pays))}catch(e){}}
+function fmt(n){if(!n||n===0)return"\u2014";var a=Math.abs(n);var s=a>=100000?"\u20B9"+(a/100000).toFixed(1)+"L":"\u20B9"+a.toLocaleString("en-IN");return n<0?"("+s+")":s}
+function ff(n){return"\u20B9"+Math.abs(Math.round(n)).toLocaleString("en-IN")}
+function toast(m){toastM=m;R();clearTimeout(toastT);toastT=setTimeout(function(){toastM="";R()},2200)}
+function uid(){return Date.now().toString(36)+Math.random().toString(36).slice(2,6)}
+function esc(s){return String(s).replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/"/g,"&quot;")}
+
+// ============================================================
+// BUG FIX: Sync form inputs before any re-render
+// ============================================================
+function syncForm() {
+  if (tab === 0) {
+    var d = document.getElementById("fd"); if (d) F.desc = d.value;
+    var a = document.getElementById("fa"); if (a) F.amt = a.value;
+    var dt = document.getElementById("fdt"); if (dt) F.date = dt.value;
+  }
+  if (tab === 4 && showPF) {
+    var pa = document.getElementById("pa"); if (pa) PF.amt = pa.value;
+    var pn = document.getElementById("pn"); if (pn) PF.note = pn.value;
+    var pfr = document.getElementById("pfr"); if (pfr) PF.from = pfr.value;
+    var pto = document.getElementById("pto"); if (pto) PF.to = pto.value;
+    var pdt = document.getElementById("pdt"); if (pdt) PF.date = pdt.value;
+  }
+}
+
+function calc(){
+  var tb=0;BUD.forEach(function(b){tb+=b.b});
+  var ta=0;exps.forEach(function(e){ta+=e.amount});
+  var cb={},ca={};CATS.forEach(function(c){cb[c]=0;ca[c]=0});
+  BUD.forEach(function(b){cb[b.c]+=b.b});
+  exps.forEach(function(e){ca[e.cat]=(ca[e.cat]||0)+e.amount});
+  var po={},pp={};P.forEach(function(p){po[p]=0;pp[p]=0});
+  exps.forEach(function(e){pp[e.paidBy]+=e.amount;var sh=e.amount/e.appliesTo.length;e.appliesTo.forEach(function(p){po[p]+=sh})});
+  var pr={},pm={};P.forEach(function(p){pr[p]=0;pm[p]=0});
+  pays.forEach(function(py){pm[py.from]+=py.amount;pr[py.to]+=py.amount});
+  var pn={};P.forEach(function(p){pn[p]=pp[p]-po[p]+pr[p]-pm[p]});
+  var pco={};P.forEach(function(p){pco[p]={};CATS.forEach(function(c){pco[p][c]=0})});
+  exps.forEach(function(e){var sh=e.amount/e.appliesTo.length;e.appliesTo.forEach(function(p){pco[p][e.cat]+=sh})});
+  var dbt=P.filter(function(p){return pn[p]<-0.5}).map(function(p){return{n:p,a:-pn[p]}}).sort(function(a,b){return b.a-a.a});
+  var crd=P.filter(function(p){return pn[p]>0.5}).map(function(p){return{n:p,a:pn[p]}}).sort(function(a,b){return b.a-a.a});
+  var stl=[];var di=0,ci=0;
+  while(di<dbt.length&&ci<crd.length){var pay=Math.min(dbt[di].a,crd[ci].a);if(pay>0.5)stl.push({from:dbt[di].n,to:crd[ci].n,amount:Math.round(pay)});dbt[di].a-=pay;crd[ci].a-=pay;if(dbt[di].a<0.5)di++;if(crd[ci].a<0.5)ci++}
+  return{tb:tb,ta:ta,cb:cb,ca:ca,po:po,pp:pp,pn:pn,pco:pco,stl:stl,pr:pr,pm:pm};
+}
+
+// All handlers call syncForm() before R()
+function setTab(i){syncForm();tab=i;R()}
+function setCat(c){syncForm();F.cat=c;R()}
+function setPaid(p){syncForm();F.paid=p;R()}
+function toggleSplit(p){syncForm();F.split[p]=!F.split[p];R()}
+function toggleAllSplit(){syncForm();var a=P.every(function(p){return F.split[p]});P.forEach(function(p){F.split[p]=!a});R()}
+function setFilter(c){filterCat=c;R()}
+function setPayMode(m){syncForm();PF.mode=m;R()}
+function togglePF(){syncForm();showPF=!showPF;R()}
+
+function addExp(){
+  syncForm();
+  var desc=F.desc;var amt=parseFloat(F.amt||"0");var date=F.date;
+  if(!desc.trim()||!amt||amt<=0)return toast("Fill description & amount");
+  var ap=P.filter(function(p){return F.split[p]});
+  if(!ap.length)return toast("Select at least one person");
+  var e={id:editId||uid(),desc:desc.trim(),cat:F.cat,amount:amt,paidBy:F.paid,appliesTo:ap,date:date};
+  if(editId){var idx=-1;exps.forEach(function(x,i){if(x.id===editId)idx=i});if(idx>=0)exps[idx]=e}
+  else exps.push(e);
+  fbSaveExp();sv();
+  var was=editId?"Updated":"Added";
+  F={desc:"",cat:"Food",amt:"",paid:"Suyog",split:{},date:tdy()};P.forEach(function(p){F.split[p]=true});
+  editId=null;toast(was);R();
+}
+function delExp(id){if(confirm("Delete this expense?")){exps=exps.filter(function(e){return e.id!==id});fbSaveExp();sv();toast("Deleted");R()}}
+function editExp(id){syncForm();var e=null;exps.forEach(function(x){if(x.id===id)e=x});if(!e)return;
+  F={desc:e.desc,cat:e.cat,amt:e.amount.toString(),paid:e.paidBy,split:{},date:e.date};
+  P.forEach(function(p){F.split[p]=e.appliesTo.indexOf(p)>=0});editId=e.id;tab=0;R();window.scrollTo(0,0)}
+function cancelEdit(){editId=null;F={desc:"",cat:"Food",amt:"",paid:"Suyog",split:{},date:tdy()};P.forEach(function(p){F.split[p]=true});R()}
+function resetAll(){if(confirm("Delete ALL expenses?")){exps=[];fbSaveExp();sv();R()}}
+
+function addPay(){
+  syncForm();
+  var amt=parseFloat(PF.amt||"0");
+  if(!amt||amt<=0)return toast("Enter payment amount");
+  if(PF.from===PF.to)return toast("From and To cannot be same");
+  pays.push({id:uid(),from:PF.from,to:PF.to,amount:amt,date:PF.date,mode:PF.mode,note:PF.note.trim()});
+  fbSavePay();svp();
+  PF={from:"Tanvi",to:"Suyog",amt:"",date:tdy(),mode:"UPI",note:""};showPF=false;toast("Payment recorded");R();
+}
+function delPay(id){if(confirm("Delete this payment?")){pays=pays.filter(function(p){return p.id!==id});fbSavePay();svp();toast("Deleted");R()}}
+
+function optS(c,on){return on?"background:"+c+"22;border-color:"+c+"88;color:"+c+";font-weight:700":""}
+
+function R(){
+  var c=calc();var pct=c.tb>0?(c.ta/c.tb*100):0;var rem=c.tb-c.ta;
+  var bc=pct>100?"#ef4444":pct>90?"#f59e0b":"#22c55e";
+  var h="";
+  if(toastM)h+='<div class="toast">'+toastM+"</div>";
+  h+='<div class="header"><div class="dates">May 30 \u2013 Jun 7, 2026</div><h1 class="title">Himachal Road Trip</h1><div class="route">CHD \u2192 Narkanda \u2192 Sangla \u2192 Kalpa \u2192 Sarahan \u2192 CHD</div>';
+  if(fbReady)h+='<div class="sync-status" style="color:#22c55e">\u2022 '+syncStatus+'</div>';
+  else if(FIREBASE_CONFIG.apiKey)h+='<div class="sync-status" style="color:#f59e0b">\u2022 connecting...</div>';
+  else h+='<div class="sync-status" style="color:#64748b">\u2022 offline mode (see Setup tab to enable sync)</div>';
+  h+="</div>";
+
+  h+='<div class="qstats"><div class="qs"><div class="ql">Budget</div><div class="qv">'+fmt(c.tb)+'</div></div>';
+  h+='<div class="qs"><div class="ql">Spent</div><div class="qv" style="color:'+(pct>100?"#ef4444":"#22c55e")+'">'+fmt(c.ta)+'</div></div>';
+  h+='<div class="qs"><div class="ql">Remaining</div><div class="qv" style="color:'+(rem<0?"#ef4444":"#22c55e")+'">'+fmt(rem)+'</div></div>';
+  h+='<div class="qs"><div class="ql">Per Person</div><div class="qv">'+fmt(Math.round(c.ta/6))+'</div></div></div>';
+  h+='<div class="pbar-w"><div class="pbar"><div class="pbar-f" style="width:'+Math.min(pct,100)+'%;background:'+bc+'"></div></div><div class="pbar-l">'+pct.toFixed(1)+'% of budget used</div></div>';
+  h+='<div class="tabs">';TABS.forEach(function(t,i){h+='<div class="tbtn'+(tab===i?" on":"")+'" onclick="setTab('+i+')">'+t+(i===1&&exps.length?'<span class="bdg">'+exps.length+"</span>":"")+"</div>"});h+="</div>";
+  h+='<div class="content">';
+
+  // ===== ADD TAB =====
+  if(tab===0){
+    var ap=P.filter(function(p){return F.split[p]});
+    var pp=F.amt&&ap.length?Math.round(parseFloat(F.amt)/ap.length):0;
+    var allOn=P.every(function(p){return F.split[p]});
+    h+='<div class="stitle">'+(editId?"Edit Expense":"Add Expense")+"</div>"+'<div class="card">';
+    h+='<div class="lbl">Description</div><input class="inp" id="fd" value="'+esc(F.desc)+'" placeholder="e.g. Dinner at Sangla">';
+    h+='<div class="row2" style="margin-top:12px"><div><div class="lbl">Amount (Rs)</div><input class="inp inp-big" id="fa" type="number" inputmode="numeric" value="'+esc(F.amt)+'" placeholder="0"></div>';
+    h+='<div><div class="lbl">Date</div><input class="inp" id="fdt" type="date" value="'+F.date+'"></div></div>';
+    h+='<div class="lbl" style="margin-top:14px">Category</div><div class="opts">';
+    CATS.forEach(function(ct){h+='<div class="opt" style="'+optS(CC[ct],F.cat===ct)+'" onclick="setCat(\''+ct+'\')">'+IC[ct]+" "+ct+"</div>"});
+    h+="</div>";
+    h+='<div class="lbl" style="margin-top:14px">Paid by</div><div class="opts">';
+    P.forEach(function(p){h+='<div class="opt" style="'+optS("#3b82f6",F.paid===p)+'" onclick="setPaid(\''+p+'\')">'+p+"</div>"});
+    h+="</div>";
+    h+='<div class="lbl" style="margin-top:14px">Split between</div><div class="cbox-grid">';
+    P.forEach(function(p){var on=F.split[p];h+='<label class="cbox-item'+(on?" on":"")+'" onclick="toggleSplit(\''+p+'\')"><input type="checkbox" '+(on?"checked":"")+" tabindex=\"-1\"><span>"+p+"</span></label>"});
+    h+='</div><button class="toggle-all" onclick="toggleAllSplit()">'+(allOn?"Uncheck all":"Check all")+"</button>";
+    if(pp)h+='<div class="split-preview">Split: <b>'+ff(pp)+"</b> each x "+ap.length+" "+(ap.length===1?"person":"people")+"</div>";
+    h+='<button class="btn-main" onclick="addExp()">'+(editId?"Update Expense":"Add Expense")+"</button>";
+    if(editId)h+='<button class="btn-cancel" onclick="cancelEdit()">Cancel Edit</button>';
+    h+="</div>";
+  }
+
+  // ===== EXPENSES TAB =====
+  if(tab===1){
+    var fl=exps.filter(function(e){return filterCat==="All"||e.cat===filterCat}).sort(function(a,b){return(b.date||"").localeCompare(a.date||"")});
+    h+='<div class="stitle">All Expenses</div><div class="opts" style="margin-bottom:12px">';
+    h+='<div class="opt" style="'+optS("#64748b",filterCat==="All")+'" onclick="setFilter(\'All\')">All</div>';
+    CATS.forEach(function(ct){h+='<div class="opt" style="'+optS(CC[ct],filterCat===ct)+'" onclick="setFilter(\''+ct+'\')">'+IC[ct]+" "+ct+"</div>"});
+    h+="</div>";
+    if(!fl.length){h+='<div class="card"><p class="empty">No expenses'+(filterCat!=="All"?" in "+filterCat:"")+"</p></div>"}
+    fl.forEach(function(e){
+      h+='<div class="card"><div class="exp-top"><div class="exp-left"><div class="exp-title"><span class="icon">'+IC[e.cat]+'</span><span class="name">'+esc(e.desc)+"</span></div>";
+      h+='<div class="exp-meta"><span style="color:'+CC[e.cat]+';font-weight:600">'+e.cat+"</span> &middot; "+e.date+" &middot; Paid by <b>"+e.paidBy+"</b></div>";
+      h+='<div class="exp-meta">Split: '+e.appliesTo.join(", ")+" ("+ff(e.amount/e.appliesTo.length)+" each)</div>";
+      h+='</div><div class="exp-right"><div class="exp-amt">'+ff(e.amount)+"</div>";
+      h+='<div class="exp-actions"><button class="mbtn" onclick="editExp(\''+e.id+'\')">Edit</button><button class="mbtn dng" onclick="delExp(\''+e.id+'\')">Del</button></div></div></div></div>';
+    });
+    if(exps.length)h+='<div style="text-align:center"><button class="resetbtn" onclick="resetAll()">Reset All</button></div>';
+  }
+
+  // ===== BUDGET TAB =====
+  if(tab===2){
+    h+='<div class="stitle">Budget vs Actual</div>';
+    CATS.forEach(function(cat){
+      var items=BUD.filter(function(b){return b.c===cat});var b=c.cb[cat],a=c.ca[cat],pct2=b>0?(a/b*100):0;
+      h+='<div class="card"><div class="bcat-head"><div class="left"><span style="font-size:17px">'+IC[cat]+'</span><span class="cname">'+cat+'</span></div>';
+      h+='<div class="bcat-nums"><span style="color:'+(pct2>100?"#ef4444":"#22c55e")+'">'+ff(a)+'</span> <span style="color:#64748b">/ '+ff(b)+"</span></div></div>";
+      h+='<div class="pbar" style="margin-bottom:10px"><div class="pbar-f" style="width:'+Math.min(pct2,100)+"%;background:"+(pct2>100?"#ef4444":CC[cat])+'"></div></div>';
+      items.forEach(function(item){h+='<div class="bline"><span class="bd">'+item.d+'</span><span class="ba">'+ff(item.b)+"</span></div>"});
+      h+="</div>";
+    });
+  }
+
+  // ===== REPORTS TAB =====
+  if(tab===3){
+    h+='<div class="stitle">Trip Reports</div><div class="card"><div style="font-weight:700;font-size:14px;margin-bottom:10px">Overview</div><div class="sgrid">';
+    h+='<div class="sbox"><div class="sl">Total Budget</div><div class="sv">'+ff(c.tb)+"</div></div>";
+    h+='<div class="sbox"><div class="sl">Total Spent</div><div class="sv" style="color:'+(c.ta>c.tb?"#ef4444":"#22c55e")+'">'+ff(c.ta)+"</div></div>";
+    h+='<div class="sbox"><div class="sl">Remaining</div><div class="sv" style="color:'+(rem<0?"#ef4444":"#22c55e")+'">'+ff(rem)+"</div></div>";
+    h+='<div class="sbox"><div class="sl">Avg Per Person</div><div class="sv">'+ff(c.ta/6)+"</div></div>";
+    h+='<div class="sbox"><div class="sl">Transactions</div><div class="sv">'+exps.length+"</div></div>";
+    h+='<div class="sbox"><div class="sl">Per Person/Day</div><div class="sv">'+ff(c.ta/6/9)+"</div></div></div></div>";
+    h+='<div class="card" style="margin-top:10px"><div style="font-weight:700;font-size:14px;margin-bottom:10px">Category Breakdown</div>';
+    CATS.forEach(function(cat){var b=c.cb[cat],a=c.ca[cat],v=b-a;
+      h+='<div class="crow"><div class="ci">'+IC[cat]+'</div><div style="flex:1"><div class="cn">'+cat+'</div><div class="cs">Budget: '+ff(b)+"</div></div>";
+      h+='<div class="cr"><div class="ca">'+ff(a)+'</div><div class="cv" style="color:'+(v>=0?"#22c55e":"#ef4444")+'">'+(v>=0?"\u2193 "+ff(v)+" under":"\u2191 "+ff(-v)+" over")+"</div></div></div>"});
+    h+="</div>";
+    h+='<div class="card" style="margin-top:10px"><div style="font-weight:700;font-size:14px;margin-bottom:10px">Person-wise Breakdown</div>';
+    P.forEach(function(p){h+='<div class="pblock"><div class="ph"><span class="pn">'+p+'</span><span class="pt">Owes: '+ff(c.po[p])+"</span></div>"+'<div class="pc">';
+      CATS.forEach(function(ct){var v=c.pco[p][ct];if(v>=1)h+='<span class="pill" style="background:'+CC[ct]+"22;color:"+CC[ct]+'">'+ct+": "+ff(v)+"</span>"});
+      h+="</div></div>"});
+    h+="</div>";
+    if(exps.length){
+      var big=exps.reduce(function(a,b){return a.amount>b.amount?a:b});
+      var counts={};exps.forEach(function(e){counts[e.cat]=(counts[e.cat]||0)+1});
+      var topC=Object.keys(counts).sort(function(a,b){return counts[b]-counts[a]})[0]||"\u2014";
+      var topPa=P.reduce(function(a,b){return c.pp[a]>c.pp[b]?a:b});
+      h+='<div class="card" style="margin-top:10px"><div style="font-weight:700;font-size:14px;margin-bottom:8px">Quick Stats</div>';
+      h+='<div class="qsrow"><span class="qsl">Biggest expense</span><span class="qsv">'+esc(big.desc)+" ("+ff(big.amount)+")</span></div>";
+      h+='<div class="qsrow"><span class="qsl">Most common category</span><span class="qsv">'+topC+"</span></div>";
+      h+='<div class="qsrow"><span class="qsl">Highest spender</span><span class="qsv">'+topPa+" ("+ff(c.pp[topPa])+")</span></div>";
+      h+='<div class="qsrow"><span class="qsl">Avg expense size</span><span class="qsv">'+ff(c.ta/(exps.length||1))+"</span></div></div>";
+    }
+  }
+
+  // ===== SETTLE TAB =====
+  if(tab===4){
+    h+='<div class="stitle">Settlement</div><div class="card"><div style="font-weight:700;font-size:14px;margin-bottom:6px">Net Position</div>';
+    h+='<div style="font-size:10px;color:#64748b;margin-bottom:8px">'+exps.length+" expense"+(exps.length!==1?"s":"")+" + "+pays.length+" payment"+(pays.length!==1?"s":"")+"</div>";
+    P.forEach(function(p){
+      var net=c.pn[p];var color=net>0.5?"#22c55e":net<-0.5?"#ef4444":"#64748b";
+      var disp=net>0.5?"+"+ff(net):net<-0.5?"-"+ff(Math.abs(net)):"Settled \u2713";
+      var payMade=pays.filter(function(py){return py.from===p}).reduce(function(s,py){return s+py.amount},0);
+      var payRecv=pays.filter(function(py){return py.to===p}).reduce(function(s,py){return s+py.amount},0);
+      h+='<div class="srow"><div><div class="sn">'+p+'</div><div class="ss">Paid: '+ff(c.pp[p]);
+      if(payMade>0)h+=" &middot; Settled: "+ff(payMade);if(payRecv>0)h+=" &middot; Received: "+ff(payRecv);
+      h+=" &middot; Owes: "+ff(c.po[p])+'</div></div><div class="snet" style="color:'+color+'">'+disp+"</div></div>"});
+    h+="</div>";
+    if(c.stl.length){
+      h+='<div class="card" style="margin-top:10px"><div style="font-weight:700;font-size:14px;margin-bottom:8px">Transfers Still Needed</div>';
+      h+='<div style="font-size:11px;color:#64748b;margin-bottom:10px">'+c.stl.length+" transfer"+(c.stl.length>1?"s":"")+" to fully settle</div>";
+      c.stl.forEach(function(s){h+='<div class="tcard"><div class="tf">'+s.from+'</div><div class="tm"><div class="tp">pays</div><div class="ta">'+ff(s.amount)+'</div></div><div class="tt">'+s.to+"</div></div>"});
+      h+="</div>";
+    } else if(exps.length){
+      h+='<div class="card" style="margin-top:10px;text-align:center;padding:20px"><div style="font-size:22px;margin-bottom:6px">\u2705</div><div style="font-weight:700;font-size:14px;color:#22c55e">All Settled!</div></div>';
+    }
+    h+='<div class="card" style="margin-top:10px"><div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:'+(showPF?"12":"0")+'px">';
+    h+='<div style="font-weight:700;font-size:14px">\uD83D\uDCB8 Record a Payment</div>';
+    h+='<div class="opt" style="'+optS("#14b8a6",true)+'font-size:11px;padding:4px 10px;cursor:pointer" onclick="togglePF()">'+(showPF?"Cancel":"+ Add")+"</div></div>";
+    if(showPF){
+      h+='<div class="row2"><div><div class="lbl">From (who paid)</div><select class="inp" id="pfr" style="padding:9px 8px">';
+      P.forEach(function(p){h+='<option value="'+p+'"'+(PF.from===p?" selected":"")+">"+p+"</option>"});
+      h+='</select></div><div><div class="lbl">To (who receives)</div><select class="inp" id="pto" style="padding:9px 8px">';
+      P.forEach(function(p){h+='<option value="'+p+'"'+(PF.to===p?" selected":"")+">"+p+"</option>"});
+      h+="</select></div></div>";
+      h+='<div class="row2" style="margin-top:10px"><div><div class="lbl">Amount (Rs)</div><input class="inp inp-big" id="pa" type="number" inputmode="numeric" value="'+esc(PF.amt)+'" placeholder="0"></div>';
+      h+='<div><div class="lbl">Date</div><input class="inp" id="pdt" type="date" value="'+PF.date+'"></div></div>';
+      h+='<div class="row2" style="margin-top:10px"><div><div class="lbl">Mode</div><div class="opts">';
+      ["UPI","Cash","Bank"].forEach(function(m){h+='<div class="opt" style="'+optS("#14b8a6",PF.mode===m)+'font-size:10.5px;padding:4px 9px" onclick="setPayMode(\''+m+'\')">'+m+"</div>"});
+      h+='</div></div><div><div class="lbl">Note (optional)</div><input class="inp" id="pn" value="'+esc(PF.note)+'" placeholder="e.g. Flight share"></div></div>';
+      h+='<button class="btn-main btn-teal" onclick="addPay()" style="margin-top:12px">Record Payment</button>';
+    }
+    h+="</div>";
+    if(pays.length){
+      h+='<div class="card" style="margin-top:10px"><div style="font-weight:700;font-size:14px;margin-bottom:10px">Payment History</div>';
+      var sorted=pays.slice().sort(function(a,b){return(b.date||"").localeCompare(a.date||"")});
+      sorted.forEach(function(py){
+        h+='<div class="payrow"><div class="pi"><span class="pfr">'+py.from+'</span> <span style="color:#64748b">\u2192</span> <span class="pto">'+py.to+"</span>";
+        h+='<div class="pm">'+py.date+" &middot; "+py.mode+(py.note?" &middot; "+esc(py.note):"")+"</div></div>";
+        h+='<div class="pr"><div class="pa">'+ff(py.amount)+'</div><button class="mbtn dng" onclick="delPay(\''+py.id+'\')">\u2715</button></div></div>'});
+      h+="</div>";
+    }
+    if(!exps.length&&!pays.length)h+='<div class="card" style="margin-top:10px"><p class="empty">Add expenses to see settlements</p></div>';
+  }
+
+  // ===== SETUP TAB =====
+  if(tab===5){
+    h+='<div class="stitle">Setup: Enable Cross-Device Sync</div>';
+    h+='<div class="setup-card"><h3>\uD83D\uDD25 Firebase Setup (one-time, 5 minutes)</h3>';
+    h+='<p>This enables real-time sync so all 6 people see the same expenses on any device.</p>';
+    h+='<ol>';
+    h+='<li>Go to <a href="https://console.firebase.google.com" target="_blank">console.firebase.google.com</a></li>';
+    h+='<li>Click <b>Add Project</b> \u2192 name it <code>himachal-trip</code> \u2192 disable Analytics \u2192 Create</li>';
+    h+='<li>In the project, click <b>Build \u2192 Realtime Database \u2192 Create Database</b></li>';
+    h+='<li>Choose any location \u2192 select <b>Start in test mode</b> \u2192 Enable</li>';
+    h+='<li>Click the \u2699\uFE0F gear \u2192 <b>Project Settings</b> \u2192 scroll to <b>Your apps</b> \u2192 click <b>Web (&lt;/&gt;)</b></li>';
+    h+='<li>Register app (any name) \u2192 copy the <code>firebaseConfig</code> object</li>';
+    h+='<li>Open this HTML file in a text editor</li>';
+    h+='<li>Find the <code>FIREBASE_CONFIG</code> section near the top of the script</li>';
+    h+='<li>Paste your config values (apiKey, databaseURL, etc.)</li>';
+    h+='<li>Save, re-upload to GitHub Pages, done!</li>';
+    h+='</ol></div>';
+
+    h+='<div class="setup-card"><h3>\uD83D\uDCBB GitHub Pages Hosting</h3>';
+    h+='<ol>';
+    h+='<li>Create a new repo on <a href="https://github.com/new" target="_blank">github.com/new</a> \u2192 name it <code>himachal-trip</code> \u2192 Public</li>';
+    h+='<li>Upload this HTML file as <code>index.html</code></li>';
+    h+='<li>Go to <b>Settings \u2192 Pages</b></li>';
+    h+='<li>Source: <b>Deploy from a branch</b> \u2192 Branch: <b>main</b> \u2192 <b>/ (root)</b> \u2192 Save</li>';
+    h+='<li>Wait 1-2 minutes, your URL will be: <code>https://YOUR_USERNAME.github.io/himachal-trip</code></li>';
+    h+='<li>Share this link in your trip group!</li>';
+    h+='</ol></div>';
+
+    h+='<div class="setup-card"><h3>\u26A0\uFE0F Without Firebase</h3>';
+    h+='<p>The app works perfectly offline / single-device without Firebase. Data saves in your browser. The Setup tab disappears once you add the Firebase config.</p></div>';
+  }
+
+  h+="</div>";
+  document.getElementById("app").innerHTML=h;
+}
+
+ld();
+initFirebase();
+R();
+</script>
+</body>
+</html>
