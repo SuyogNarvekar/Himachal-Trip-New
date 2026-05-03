@@ -287,7 +287,7 @@ function calc(){
   exps.forEach(function(e){pp[e.paidBy]+=e.amount;var sh=e.amount/e.appliesTo.length;e.appliesTo.forEach(function(p){po[p]+=sh})});
   var pr={},pm={};P.forEach(function(p){pr[p]=0;pm[p]=0});
   pays.forEach(function(py){pm[py.from]+=py.amount;pr[py.to]+=py.amount});
-  var pn={};P.forEach(function(p){pn[p]=pp[p]-po[p]+pr[p]-pm[p]});
+  var pn={};P.forEach(function(p){pn[p]=pp[p]-po[p]-pr[p]+pm[p]});
   var pco={};P.forEach(function(p){pco[p]={};CATS.forEach(function(c){pco[p][c]=0})});
   exps.forEach(function(e){var sh=e.amount/e.appliesTo.length;e.appliesTo.forEach(function(p){pco[p][e.cat]+=sh})});
   var dbt=P.filter(function(p){return pn[p]<-0.5}).map(function(p){return{n:p,a:-pn[p]}}).sort(function(a,b){return b.a-a.a});
